@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: cms_db
+    environment:
+      POSTGRES_USER: $POSTGRES_USER # Cambia esto por tu usuario de PostgreSQL
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD # Cambia esto por tu contraseña de PostgreSQL
+      POSTGRES_DB: $POSTGRES_DB # Cambia esto por el nombre de tu base de datos
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data/
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: cms_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: $PGADMIN_DEFAULT_EMAIL # Cambia esto por tu email de pgAdmin
+      PGADMIN_DEFAULT_PASSWORD: $PGADMIN_DEFAULT_PASSWORD # Cambia esto por tu contraseña de pgAdmin
+    ports:
+      - "8080:80" # Accederás a pgAdmin en http://localhost:8082
+    depends_on:
+      - db # Asegura que la base de datos esté corriendo antes de iniciar pgAdmin
+
+volumes:
+  db_data:
