@@ -19,6 +19,7 @@ model User {
   codeExpiry       DateTime?
   emailVerified    DateTime?
   image            String?
+  isActive         Boolean   @default(true)
   role             Role      @relation(fields: [roleId], references: [id])
 
   accounts      Account[]
@@ -42,24 +43,24 @@ model Role {
   description String?          @default("")
   users       User[]
   permissions RolePermission[]
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  deletedAt   DateTime?
 
   @@map("roles")
 }
 
 model Permission {
-  id          String    @id @default(cuid())
-  name        String    @unique
-  description String?   @default("")
-  category    String?   @default("read")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id          String           @id @default(cuid())
+  name        String           @unique
+  description String?          @default("")
+  category    String?          @default("read")
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
   deletedAt   DateTime?
-
-  roles RolePermission[]
+  isActive    Boolean          @default(true)
+  roles       RolePermission[]
 
   @@map("permissions")
 }
