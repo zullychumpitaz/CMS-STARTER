@@ -167,17 +167,23 @@ export function PermissionedMenuItem({
   }
 
   return (
-    <Link
-      key={item.url}
-      href={item.url}
-      className={cn(
-        "flex items-center text-sm font-medium hover:text-foreground/80",
-        item.url === pathname && "text-foreground", // Highlight active link
-        item.url !== pathname && "text-muted-foreground", // Dim inactive links
-      )}
-    >
-      {item.icon && <item.icon className="mr-2 h-4 w-4" />}
-      {item.title}
-    </Link>
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        asChild
+        tooltip={item.title}
+        className={cn(
+          "cursor-pointer hover:bg-primary hover:text-primary-foreground",
+          item.url === pathname && "bg-primary text-primary-foreground", // Highlight active link
+        )}
+      >
+        <Link
+          key={item.url}
+          href={item.url}
+        >
+          {item.icon && <item.icon />}
+          <span>{item.title}</span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
   );
 }

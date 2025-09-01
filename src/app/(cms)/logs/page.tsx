@@ -9,6 +9,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEffect, useState } from "react";
 import { JsonValue } from "@prisma/client/runtime/library";
+import { ScrollText } from "lucide-react";
 
 export type Log = {
     id: string;
@@ -50,6 +51,19 @@ export default function LogsPage() {
     const [performers, setPerformers] = useState<{ id: string; name: string }[]>([]);
 
     useEffect(() => {
+        const currentParams = new URLSearchParams(searchParams.toString());
+        if (!currentParams.has('page')) {
+            currentParams.set('page', String(defaultPage));
+        }
+        if (!currentParams.has('pageSize')) {
+            currentParams.set('pageSize', String(defaultPageSize));
+        }
+        if (currentParams.toString() !== searchParams.toString()) {
+            router.replace(`/logs?${currentParams.toString()}`);
+        }
+    }, [searchParams, router, defaultPage, defaultPageSize]);
+
+    useEffect(() => {
         const fetchPageData = async () => {
             setIsLoading(true);
             const actualEntityFilter = entityFilter === 'all' ? undefined : entityFilter;
@@ -60,7 +74,7 @@ export default function LogsPage() {
             setIsLoading(false);
         };
         fetchPageData();
-    }, [page, pageSize, entityFilter, performedByFilter]);
+    }, [page, pageSize, entityFilter, performedByFilter, searchParams]);
 
     useEffect(() => {
         const fetchFilterOptions = async () => {
@@ -81,7 +95,6 @@ export default function LogsPage() {
         } else {
             params.set(name, value);
         }
-        params.set('page', '1'); // Reset page to 1 on filter change
         return params.toString();
     };
 
@@ -96,15 +109,32 @@ export default function LogsPage() {
     };
 
     const handleItemsPerPageChange = (value: string) => {
-        router.push(`/logs?${createQueryString('pageSize', value)}`);
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('pageSize', value);
+        params.set('page', '1'); // Reset page to 1
+        router.push(`/logs?${params.toString()}`);
     };
 
     const handleEntityFilterChange = (value: string) => {
-        router.push(`/logs?${createQueryString('entity', value)}`);
+        const params = new URLSearchParams(searchParams.toString());
+        if (value === 'all') {
+            params.delete('entity');
+        } else {
+            params.set('entity', value);
+        }
+        params.set('page', '1'); // Reset page to 1
+        router.push(`/logs?${params.toString()}`);
     };
 
     const handlePerformedByFilterChange = (value: string) => {
-        router.push(`/logs?${createQueryString('performedBy', value)}`);
+        const params = new URLSearchParams(searchParams.toString());
+        if (value === 'all') {
+            params.delete('performedBy');
+        } else {
+            params.set('performedBy', value);
+        }
+        params.set('page', '1'); // Reset page to 1
+        router.push(`/logs?${params.toString()}`);
     };
 
     return (
@@ -116,58 +146,61 @@ export default function LogsPage() {
                         <h1 className="text-xl font-bold text-primary">Logs</h1>
                         <p className="text-muted-foreground text-sm">Visualiza los registros de actividad del sistema.</p>
                     </div>
-                    {/* The "Create" button is not relevant for a logs page, so I'll remove it or change its purpose */}
-                    {/* <Button asChild>
-                        <Link href="/logs/create" className="flex gap-2 items-center text-sm bg-primary font-bold text-muted"><Plus size={16} /> Crear log</Link>
-                    </Button> */}
                 </section>
                 
                 {/* Filter Section */}
-                <section className="flex gap-4 mb-4">
-                    <div className="flex items-center space-x-2">
-                        <p className="text-sm font-medium">Entidad:</p>
-                        <Select value={entityFilter} onValueChange={handleEntityFilterChange}>
-                            <SelectTrigger className="h-8 w-[150px]">
-                                <SelectValue placeholder="Todas" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Todas</SelectItem>
-                                {entities.map((entity) => (
-                                    <SelectItem key={entity} value={entity}>
-                                        {entity}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <p className="text-sm font-medium">Realizado por:</p>
-                        <Select value={performedByFilter} onValueChange={handlePerformedByFilterChange}>
-                            <SelectTrigger className="h-8 w-[150px]">
-                                <SelectValue placeholder="Todos" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Todos</SelectItem>
-                                {performers.map((performer) => (
-                                    <SelectItem key={performer.id} value={performer.id}>
-                                        {performer.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </section>
+                <Card>
+                    <CardContent className="px-6">
+                        <section className="flex gap-4">
+                            <div className="flex items-center space-x-2">
+                                <p className="text-sm font-medium">Entidad:</p>
+                                <Select value={entityFilter} onValueChange={handleEntityFilterChange}>
+                                    <SelectTrigger className="h-8 w-[150px]">
+                                        <SelectValue placeholder="Todas" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Todas</SelectItem>
+                                        {entities.map((entity) => (
+                                            <SelectItem key={entity} value={entity}>
+                                                {entity}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <p className="text-sm font-medium">Realizado por:</p>
+                                <Select value={performedByFilter} onValueChange={handlePerformedByFilterChange}>
+                                    <SelectTrigger className="h-8 w-[150px]">
+                                        <SelectValue placeholder="Todos" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Todos</SelectItem>
+                                        {performers.map((performer) => (
+                                            <SelectItem key={performer.id} value={performer.id}>
+                                                {performer.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </section>
+                    </CardContent>
+                </Card>
 
                 <section className="">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Listado de Logs</CardTitle>
+                            <CardTitle className="flex items-center gap-2">
+                                <ScrollText className="w-5 h-5 text-emerald-500" />
+                                Listado de Logs</CardTitle>
                         </CardHeader>
-                        <CardContent>
-                            {isLoading ? (
-                                <div className="text-center py-10">Cargando logs...</div>
-                            ) : (
-                                <LogsTable logs={currentLogs} />
+                        <CardContent className="relative">
+                            <LogsTable logs={currentLogs} />
+                            {isLoading && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-75 z-10">
+                                    <p>Cargando logs...</p>
+                                </div>
                             )}
                         </CardContent>
                     </Card>

@@ -68,12 +68,8 @@ export function AppSidebar() {
           </SidebarMenu>
         </SidebarGroup>
         <NavMain items={navMenuUser} userRole={ role! } title={"Módulos"} />
-        {
-          <>
-          <SidebarSeparator />
-          <NavMain items={navMenuSuperAdmin} userRole={ role! } title={"Configuración"} />
-          </>
-        }
+        <SidebarSeparator />
+        <NavMain items={navMenuSuperAdmin} userRole={ role! } title={"Configuración"} />
       </SidebarContent>
       <SidebarFooter className="bg-background">
         <NavUser user={user} isAdmin={ role === "Super Administrador"} />

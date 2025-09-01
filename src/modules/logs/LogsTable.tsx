@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/table";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { JsonValue } from "@prisma/client/runtime/library";
 import { Log } from "@/app/(cms)/logs/page"; // Import Log type from page.tsx
 
 export default function LogsTable({
@@ -31,7 +30,7 @@ export default function LogsTable({
     <div className="rounded-md border">
       <Table>
         <TableHeader>
-          <TableRow>
+          <TableRow className="bg-background">
             <TableHead>ID Entidad</TableHead>
             <TableHead>Realizado por</TableHead>
             <TableHead>Acción</TableHead>

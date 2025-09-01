@@ -39,7 +39,7 @@ const PermissionsTable = ({ permissionsDB }: { permissionsDB: PermissionWithRole
         <div className='flex flex-col gap-4 w-full'>
         {/* Filtros */}
         <Card>
-            <CardContent className="p-6">
+            <CardContent className="px-6">
             <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
                 <div className="relative flex-1">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />

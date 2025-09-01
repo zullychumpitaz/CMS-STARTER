@@ -24,11 +24,9 @@ export function NavMain({
     }[]
   }[]
 }) {
-
   const { state } = useSidebar();
   const [activeItem, setActiveItem] = useState<string | null>(null)
 
-  
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{title}</SidebarGroupLabel>
