@@ -8,8 +8,8 @@ declare module "next-auth" {
       name: string;
       image: string;
       rol: string;
-      tenantId: string;
       is2FAEnabled: boolean;
+      permissions: string; // Store as string in JWT and Session
     };
   }
 
@@ -19,8 +19,8 @@ declare module "next-auth" {
     name: string;
     image: string;
     rol: string;
-    tenantId: string;
     is2FAEnabled: boolean;
+    permissions: string; // Store as string in JWT and Session
   }
 }
 
@@ -31,7 +31,7 @@ declare module "next-auth/jwt" {
     name: string;
     image: string;
     rol: string;
-    tenantId: string;
     is2FAEnabled: boolean;
+    permissions: string; // Store as string in JWT and Session
   }
 }
