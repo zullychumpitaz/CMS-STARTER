@@ -20,7 +20,7 @@ services:
       PGADMIN_DEFAULT_EMAIL: $PGADMIN_DEFAULT_EMAIL # Cambia esto por tu email de pgAdmin
       PGADMIN_DEFAULT_PASSWORD: $PGADMIN_DEFAULT_PASSWORD # Cambia esto por tu contraseña de pgAdmin
     ports:
-      - "8080:80" # Accederás a pgAdmin en http://localhost:8082
+      - "8081:80" # Accederás a pgAdmin en http://localhost:8082
     depends_on:
       - db # Asegura que la base de datos esté corriendo antes de iniciar pgAdmin
 
