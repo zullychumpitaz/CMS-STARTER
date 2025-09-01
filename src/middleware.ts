@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "./modules/auth/auth";
 
-export default auth((req) => {
+export default auth(async (req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
 
@@ -11,7 +11,6 @@ export default auth((req) => {
 
   // Ruta privada: usuario no logueado → redirige al login
   if (!isLoggedIn && !isPublic) {
-    console.log("Redirecting to login from:", nextUrl.pathname);
     return NextResponse.redirect(new URL("/", nextUrl));
   }
 
@@ -20,7 +19,6 @@ export default auth((req) => {
     isLoggedIn &&
     (nextUrl.pathname === "/" || nextUrl.pathname === "/register")
   ) {
-    console.log("Redirecting to dashboard from:", nextUrl.pathname);
     return NextResponse.redirect(new URL("/dashboard", nextUrl));
   }
 

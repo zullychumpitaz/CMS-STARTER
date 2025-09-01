@@ -4,14 +4,23 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { getPermissions } from "@/modules/permissions/permissions-action";
 import { RoleForm } from "@/modules/roles/RoleForm";
+import { getRoleById } from "@/modules/roles/roles-actions";
+import { notFound } from "next/navigation";
+
 const items = [
     { label: "Dashboard", href: "/" },
     { label: "Roles", href: "/roles" },
-    { label: "Crear rol" }
+    { label: "Editar rol" }
 ];
 
-export default async function RolesPage() {
+export default async function RolesPage({ params }: { params: { roleId: string } }) {
+    const { roleId } = params; // Destructure roleId explicitly
     const permissions = await getPermissions();
+    const role = await getRoleById(roleId); // Use destructured roleId
+
+    if (!role) {
+        return notFound();
+    }
 
     return (
         <>
@@ -19,14 +28,14 @@ export default async function RolesPage() {
                 <BreadCrumbHeader items={ items } />
                 <section className="flex justify-between ">
                     <div>
-                        <h1 className="text-xl font-bold text-primary">Crear rol</h1>
-                        <p className="text-muted-foreground text-sm">Completa los datos para crear un nuevo rol.</p>
+                        <h1 className="text-xl font-bold text-primary">Editar rol</h1>
+                        <p className="text-muted-foreground text-sm">Modifica los datos del rol.</p>
                     </div>
                     <Button asChild>
                         <Link href="/roles" className="flex gap-2 items-center text-sm bg-primary font-bold text-muted"><Undo2 size={16} /> Regresar</Link>
                     </Button>
                 </section>
-                <RoleForm permissions={permissions} />
+                <RoleForm permissions={permissions} role={role} />
             </section>
         </>
     );

@@ -397,18 +397,17 @@ const MultipleSelector = ({
 
   /** Avoid Creatable Selector freezing or lagging when paste a long string. */
   const commandFilter = React.useCallback(() => {
-    if (commandProps?.filter) {
-      return commandProps.filter
-    }
+    // Always provide a custom filter
+    return (itemValue: string, search: string) => {
+      // Find the option object that matches the itemValue (which is the option.value/ID)
+      const option = arrayDefaultOptions.find(opt => opt.value === itemValue);
 
-    if (creatable) {
-      return (value: string, search: string) => {
-        return value.toLowerCase().includes(search.toLowerCase()) ? 1 : -1
+      if (option && option.label) {
+        return option.label.toLowerCase().includes(search.toLowerCase()) ? 1 : -1;
       }
-    }
-    // Using default filter in `cmdk`. We don&lsquo;t have to provide it.
-    return undefined
-  }, [creatable, commandProps?.filter])
+      return -1; // Don't include if no matching option or label
+    };
+  }, [arrayDefaultOptions]);
 
   return (
     <Command
@@ -563,7 +562,7 @@ const MultipleSelector = ({
                   {EmptyItem()}
                   {CreatableItem()}
                   {!selectFirstItem && (
-                    <CommandItem value="-" className="hidden" />
+                    <CommandItem key="hidden-item" value="-" className="hidden" />
                   )}
                   {Object.entries(selectables).map(([key, dropdowns]) => (
                     <CommandGroup

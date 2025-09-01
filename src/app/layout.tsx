@@ -31,7 +31,7 @@ export default function RootLayout({
         >
           {children}
           <ToggleMode />
-          <Toaster />
+          <Toaster position="top-right" richColors />
         </ThemeProvider>
       </body>
     </html>

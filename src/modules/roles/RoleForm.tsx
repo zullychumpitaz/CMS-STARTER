@@ -5,18 +5,32 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createRole } from "./roles-actions";
+import { createRole, updateRole } from "./roles-actions";
 import { RoleFormValues, roleSchema } from "./roles-validation";
 import SelectPermissions from "../permissions/SelectPermissions";
 import { mapPermissionsToOptions } from "../permissions/permissions-utils";
+import { Role } from "@prisma/client";
 
 type FormValues = RoleFormValues;
 
+// type para los permisos que vienen de la db
+type Permission = {
+    id: string;
+    name: string;
+};
 
-export function NewRoleForm({
+// type para el rol que se edita
+type RoleData = Role & {
+    permissions: { permissionId: string }[];
+};
+
+
+export function RoleForm({
   permissions,
+  role,
 }: {
-  permissions: { id: string; name: string }[];
+  permissions: Permission[];
+  role?: RoleData;
 }) {
   const {
     register,
@@ -25,20 +39,30 @@ export function NewRoleForm({
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(roleSchema),
+    defaultValues: {
+        name: role?.name ?? "",
+        description: role?.description ?? "",
+        slug: role?.slug ?? "",
+        permissions: role?.permissions.map(p => p.permissionId) ?? [],
+    }
   });
 
   const router = useRouter();
   const permissionOptions = mapPermissionsToOptions(permissions)
   
   const onSubmit = async (data: FormValues) => {
-    console.log(data);
     try {
-      await createRole(data);
-      toast.success("Rol creado correctamente");
+        if(role) {
+            await updateRole(role.id, data);
+            toast.success("Rol actualizado correctamente");
+        } else {
+            await createRole(data);
+            toast.success("Rol creado correctamente");
+        }
       router.push("/roles");
     } catch (error) {
       console.error(error);
-      toast.error("Ocurrió un error al crear el rol");
+      toast.error(`Ocurrió un error al ${role ? 'actualizar' : 'crear'} el rol`);
     }
   };
 
@@ -62,7 +86,7 @@ export function NewRoleForm({
             {...register("name")}
             className="focus:border-primary-500 focus:ring-primary-500 dark:focus:border-primary-500 dark:focus:ring-primary-500 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 placeholder-gray-500 focus:ring-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
           />
-          {errors.name && <p style={{ color: "red" }}>{errors.name.message}</p>}
+          {errors.name && <p className="text-red-500 text-xs">{errors.name.message}</p>}
         </div>
         <div className="px-6 py-2">
           <label
@@ -78,7 +102,7 @@ export function NewRoleForm({
             {...register("description")}
             className="focus:border-primary-500 focus:ring-primary-500 dark:focus:border-primary-500 dark:focus:ring-primary-500 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 placeholder-gray-500 focus:ring-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
           />
-          {errors.description && <p style={{ color: "red" }}>{errors.description.message}</p>}
+          {errors.description && <p className="text-red-500 text-xs">{errors.description.message}</p>}
         </div>
         <div className="px-6 py-2">
           <label
@@ -94,7 +118,7 @@ export function NewRoleForm({
             {...register("slug")}
             className="focus:border-primary-500 focus:ring-primary-500 dark:focus:border-primary-500 dark:focus:ring-primary-500 block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 placeholder-gray-500 focus:ring-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
           />
-          {errors.slug && <p style={{ color: "red" }}>{errors.slug.message}</p>}
+          {errors.slug && <p className="text-red-500 text-xs">{errors.slug.message}</p>}
         </div>
       </div>
       <div className="flex h-full flex-col justify-start gap-0 py-4">
@@ -107,14 +131,14 @@ export function NewRoleForm({
                 control={control}
                 render={({ field }) => (
                     <SelectPermissions
-                    options={permissionOptions} // TODAS las opciones disponibles
-                    value={field.value || []} // valor actual del form
-                    onChange={field.onChange} // conecta con RHF
+                      options={permissionOptions} // TODAS las opciones disponibles
+                      value={field.value || []} // valor actual del form
+                      onChange={field.onChange} // conecta con RHF
                     />
                 )}
                 />
             
-            {errors.permissions && <p style={{ color: "red" }}>{errors.permissions.message}</p>}
+            {errors.permissions && <p className="text-red-500 text-xs">{errors.permissions.message}</p>}
           </div>
       </div>
       <div className="flex w-full col-span-2 items-center justify-between px-6">
@@ -122,7 +146,7 @@ export function NewRoleForm({
           type="submit"
           className="group bg-primary hover:!bg-primaryemphasis relative flex h-10 w-fit cursor-pointer items-center justify-center rounded-md p-0.5 px-4 py-2 text-center text-sm font-medium text-white focus:shadow-none focus:ring-0 focus:outline-none"
         >
-          Guardar rol
+          {role ? 'Guardar cambios' : 'Guardar rol'}
         </button>
 
         <Link

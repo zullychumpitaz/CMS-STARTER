@@ -21,6 +21,7 @@ import { useSession } from "next-auth/react"
 import { navMenuSuperAdmin, navMenuUser } from "@/modules/shared/menu";
 import { LayoutDashboard } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 export function AppSidebar() {
   const { state } = useSidebar();
@@ -28,9 +29,9 @@ export function AppSidebar() {
   const role = session?.user?.rol
   
   const user = {
-      name: session?.user?.name!,
-      email: session?.user?.email!,
-      avatar: session?.user?.image!
+      name: session?.user?.name || '',
+      email: session?.user?.email || '',
+      avatar: session?.user?.image || ''
   }
 
   return (
@@ -66,11 +67,11 @@ export function AppSidebar() {
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
-        <NavMain items={navMenuUser} title={"Módulos"} />
+        <NavMain items={navMenuUser} userRole={ role! } title={"Módulos"} />
         {
           <>
           <SidebarSeparator />
-          <NavMain items={navMenuSuperAdmin} title={"Configuración"} />
+          <NavMain items={navMenuSuperAdmin} userRole={ role! } title={"Configuración"} />
           </>
         }
       </SidebarContent>

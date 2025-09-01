@@ -1,6 +1,6 @@
 import { prisma } from "../database/prisma";
 
-export type ResourceKey = "rol" | "usuario" | "post";
+export type ResourceKey = "rol" | "usuario" | "permission";
 
 type ResourceConfig = {
   label: string; // cómo se muestra en la UI
@@ -17,13 +17,13 @@ export const RESOURCES: Record<ResourceKey, ResourceConfig> = {
   usuario: {
     label: "user",
     delete: async (id: string) => {
-      await prisma.user.delete({ where: { id } });
+      await prisma.user.update({ where: { id }, data: { deletedAt: new Date(), isActive: false } })
     },
   },
-  post: {
+  permission: {
     label: "permission",
     delete: async (id: string) => {
-      await prisma.permission.delete({ where: { id } });
+      await prisma.permission.update({ where: { id }, data: { deletedAt: new Date(), isActive: false } })
     },
   },
 };

@@ -14,26 +14,39 @@ import {
 } from "@/components/ui/alert-dialog";
 import { deleteResource } from "@/modules/shared/delete-actions";
 import { ResourceKey, RESOURCES } from "@/modules/shared/resources";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 import { Trash2 } from "lucide-react";
 
 type Props = {
   resource: ResourceKey;
   resourceId: string;
+  onActionComplete?: () => void;
 };
 
-export function DeleteResourceDialog({ resource, resourceId }: Props) {
+export function DeleteResourceDialog({ resource, resourceId, onActionComplete }: Props) {
   const resourceLabel = RESOURCES[resource].label;
+  const router = useRouter();
 
   async function handleConfirm() {
-    await deleteResource(resource, resourceId);
-    window.location.reload(); // refrescar vista
+    // Primero, cerramos el menú/diálogo para que el estado de la UI se asiente.
+    onActionComplete?.();
+
+    try {
+        await deleteResource(resource, resourceId);
+        toast.success(`${resourceLabel} eliminado correctamente`);
+        router.refresh(); // Refrescar los datos de la página actual
+    } catch (error) {
+      console.log(error)
+        toast.error(`Error al eliminar el ${resourceLabel}`);
+    }
   }
 
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <button className="text-destructive cursor-pointer flex gap-2 items-center p-1 text-sm">
+        <button className="text-destructive cursor-pointer flex gap-2 items-center text-sm w-full px-2 py-1.5 hover:bg-destructive/10 hover:text-destructive">
           <Trash2 size={16} /> Eliminar
         </button>
       </AlertDialogTrigger>

@@ -22,20 +22,22 @@ import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { LoaderCircleIcon } from "lucide-react";
 import { toast } from "sonner";
-import { LoginStepOne, TwoFactorLogin } from "../auth-actions";
+import { sendTwoFactorCode } from "../auth-actions";
 import { loginSchema, twoFactorSchema } from "../validations/auth";
 import Logo from "@/components/shared/Logo";
+import { signIn } from "next-auth/react";
 
 export const LoginForm = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [step, setStep] = useState(1);
+
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
-      code: "",
     },
   });
   const form2 = useForm<z.infer<typeof twoFactorSchema>>({
@@ -46,26 +48,37 @@ export const LoginForm = () => {
   });
 
   const router = useRouter();
-  const [step, setStep] = useState(1);
 
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
     setIsLoading(true);
     setEmail(values.email);
+    setPassword(values.password);
 
     try {
-      // Primer paso: email y password
-      const result = await LoginStepOne(values.email, values.password);
-      setEmail(values.email);
-      setPassword(values.password);
+      const result = await sendTwoFactorCode(values.email);
 
       if (result.code === "2FA_CODE_SENT") {
+        toast.info("Se ha enviado un código a tu email.");
         setStep(2);
+      } else if (result.code === "2FA_NOT_REQUIRED") {
+        // El usuario no tiene 2FA, intentar login directamente
+        const loginResult = await signIn("credentials", {
+          email: values.email,
+          password: values.password,
+          redirect: false,
+        });
+
+        if (loginResult?.ok) {
+          toast.success("Bienvenido!");
+          router.push("/dashboard");
+        } else {
+          toast.error(loginResult?.error || "Credenciales inválidas");
+        }
       } else {
-        toast.error(result.error);
+        toast.error(result.error || "Ocurrió un error");
       }
     } catch (error) {
-      console.log(error);
-      toast.error("Login error");
+      toast.error("Error al contactar al servidor");
     } finally {
       setIsLoading(false);
     }
@@ -75,17 +88,23 @@ export const LoginForm = () => {
     setIsLoading(true);
 
     try {
-      // Segundo paso: verificar código 2FA
-      const result = await TwoFactorLogin(email, password, values.code);
+      const result = await signIn("credentials", {
+        email,
+        password,
+        code: values.code,
+        redirect: false,
+      });
 
-      if (result.code === "LOGIN_SUCCESS") {
+      if (result?.ok) {
+        toast.success("Login exitoso!");
         router.push("/dashboard");
       } else {
-        console.log(result.error || "Código inválido");
+        // El error se maneja aquí, puede venir de la función authorize
+        toast.error(result?.error || "Código 2FA inválido o expirado.");
       }
     } catch (error) {
       console.error("Login error:", error);
-      console.log("Error de conexión");
+      toast.error("Error de conexión al intentar validar el código.");
     } finally {
       setIsLoading(false);
     }

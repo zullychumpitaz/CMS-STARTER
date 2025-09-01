@@ -1,12 +1,11 @@
-import NextAuth from "next-auth"
-import { PrismaAdapter } from "@auth/prisma-adapter"
-import { prisma } from "../database/prisma"
+import NextAuth, { NextAuthConfig, User } from "next-auth"
 import bcrypt from "bcryptjs";
 import Credentials from "next-auth/providers/credentials";
-import { getUserByEmail } from "./auth-actions";
+import { getUserByEmail, getVerificationCode, deleteVerificationCode, UserWithRole } from "./auth-actions";
+import { logAction } from "../logs/logs-actions"; // Import logAction
+import { accionesLog } from "../logs/logs-types"; // Import accionesLog
  
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: PrismaAdapter(prisma),
+export const authOptions: NextAuthConfig = {
   providers: [
     Credentials({
       name: "credentials",
@@ -16,36 +15,112 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         code: { label: "Code", type: "text" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        const email = String(credentials?.email);
+        const password = String(credentials?.password);
+        const code = String(credentials?.code);
+
+        if (!email || !password) {
           return null;
         }
 
         try {
-          const user = await getUserByEmail(String(credentials.email));
+          const user: UserWithRole | null = await getUserByEmail(email);
           if (!user) {
+            await logAction({
+                action: accionesLog.LOGIN_FAIL,
+                entity: "Usuario",
+                performedBy: "Desconocido", // User not found
+                details: { reason: `Intento de login fallido: Usuario no encontrado (${email})` },
+            });
             return null;
           }
 
-          // Verificar contraseña
           const isValidPassword = await bcrypt.compare(
-            String(credentials.password),
+            password,
             user.password!,
           );
+
           if (!isValidPassword) {
+            await logAction({
+                action: accionesLog.LOGIN_FAIL,
+                entity: "Usuario",
+                entityId: user.id,
+                performedBy: user.id,
+                details: { reason: `Intento de login fallido: Contraseña inválida para ${email}` },
+            });
             return null;
           }
 
+          // Si el 2FA está activado, verificar el código
+          if (user.is2FAEnabled) {
+            if (!code) {
+                await logAction({
+                    action: accionesLog.LOGIN_FAIL,
+                    entity: "Usuario",
+                    entityId: user.id,
+                    performedBy: user.id,
+                    details: { reason: `Intento de login fallido: Código 2FA requerido para ${email}` },
+                });
+                throw new Error("2FA_REQUIRED"); // Throw error to be caught by frontend
+            }
+
+            const dbCode = await getVerificationCode(user.id);
+            if (!dbCode || dbCode.code !== code) {
+                await logAction({
+                    action: accionesLog.LOGIN_FAIL,
+                    entity: "Usuario",
+                    entityId: user.id,
+                    performedBy: user.id,
+                    details: { reason: `Intento de login fallido: Código 2FA inválido para ${email}` },
+                });
+                return null; // Código inválido
+            }
+
+            if (new Date() > dbCode.expiresAt) {
+                await logAction({
+                    action: accionesLog.LOGIN_FAIL,
+                    entity: "Usuario",
+                    entityId: user.id,
+                    performedBy: user.id,
+                    details: { reason: `Intento de login fallido: Código 2FA expirado para ${email}` },
+                });
+                return null; // Código expirado
+            }
+
+            // El código es válido, eliminarlo y continuar
+            await deleteVerificationCode(user.id);
+          }
+
+          // Login exitoso
+          await logAction({
+              action: accionesLog.LOGIN,
+              entity: "Usuario",
+              entityId: user.id,
+              performedBy: user.id,
+              details: { reason: `Login exitoso para ${email}` },
+          });
+
+          // Si 2FA no está activado o si el código fue validado con éxito
           return {
             id: user.id,
             email: user.email,
             name: user.name,
             rol: user.role.name,
             image: user.image,
-            tenantId: user.tenantId,
             is2FAEnabled: user.is2FAEnabled,
-          };
+            permissions: JSON.stringify(user.role.permissions.map(p => ({ id: p.permission.id, name: p.permission.name }))),
+          } as User;
         } catch (error) {
           console.error("Error in authorize:", error);
+          if (error instanceof Error && error.message === "2FA_REQUIRED") {
+            throw error;
+          }
+          await logAction({
+              action: accionesLog.LOGIN,
+              entity: "Autenticación",
+              performedBy: "Sistema",
+              details: { reason: `Error inesperado en autorización: ${error instanceof Error ? error.message : String(error)}` },
+          });
           return null;
         }
       },
@@ -62,6 +137,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.name = user.name!;
         token.image = user.image;
         token.rol = user.rol;
+        token.permissions = user.permissions;
       }
       return token;
     },
@@ -92,4 +168,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     error: "/auth/error",
   },
   secret: process.env.AUTH_SECRET,
-})
+}
+
+export const { handlers, signIn, signOut, auth } = NextAuth(authOptions);

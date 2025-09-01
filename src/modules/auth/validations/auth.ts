@@ -2,10 +2,10 @@ import z from "zod";
 
 export const loginSchema = z.object({
   email: z
-    .string({ required_error: "El email es obligatorio" })
+    .string().nonempty("El email es obligatorio")
     .email("Formato de email inválido"),
   password: z
-    .string({ required_error: "La contraseña es obligatoria" })
+    .string().nonempty("La contraseña es obligatoria")
     .min(8, "Mínimo 8 caracteres")
     .regex(/[A-Z]/, "Debe incluir al menos 1 mayúscula")
     .regex(/[0-9]/, "Debe incluir al menos 1 número")

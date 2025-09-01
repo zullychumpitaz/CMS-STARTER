@@ -25,7 +25,6 @@ export default function ToggleMode() {
   }
 
   const isLight = resolvedTheme === "light";
-  console.log("Current theme:", resolvedTheme);
 
   return (
     <div>

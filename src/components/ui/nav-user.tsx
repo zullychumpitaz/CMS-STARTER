@@ -4,6 +4,7 @@ import {
   ChevronsUpDown,
   LogOut,
 } from "lucide-react"
+import { signOut } from "next-auth/react"
 
 import {
   Avatar,
@@ -105,9 +106,9 @@ export function NavUser({
                 ))
             }
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOut />
-              Log out
+            <DropdownMenuItem onSelect={() => signOut({ callbackUrl: "/", redirect: true })} className="cursor-pointer">
+              <LogOut className="mr-2 size-4" />
+              Cerrar sesión
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

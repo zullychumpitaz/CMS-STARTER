@@ -93,17 +93,19 @@ export const navMenuSuperAdmin = [
     title: "Autorización",
     url: "/roles",
     icon: Shield,
+    requiredPermissions: ["roles:view", "permissions:view"], // Parent item requires view permissions for its children
     items: [
-      { title: "Roles", url: "/roles" },
-      { title: "Permisos", url: "/permisos" }
+      { title: "Roles", url: "/roles", requiredPermissions: ["roles:view"] },
+      { title: "Permisos", url: "/permissions", requiredPermissions: ["permissions:view"] }
     ],
   },
   {
     title: "Monitoreo",
     url: "/logs",
     icon: ScrollText,
+    requiredPermissions: ["logs:view"], // Parent item requires view permission for its children
     items: [
-      { title: "Logs", url: "/logs" },
+      { title: "Logs", url: "/logs", requiredPermissions: ["logs:view"] },
     ],
   },
 ];

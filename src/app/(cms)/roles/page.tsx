@@ -3,20 +3,11 @@ import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader,
 import { getRoles } from "@/modules/roles/roles-actions";
 import { Badge } from "@/components/ui/badge"
 import { getPermissionColor, MAX_PERMISSIONS } from "@/types/roles";
-import { EllipsisVertical, Lock, Plus, SquarePen, Trash2, Users } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { DeleteResourceDialog } from "@/components/shared/DeleteResourceDialog";
+import { Lock, Plus, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { RoleActionsMenu } from "@/modules/roles/RoleActionsMenu";
+
 const items = [
     { label: "Dashboard", href: "/" },
     { label: "Roles", href: "/roles" },
@@ -48,31 +39,7 @@ export default async function RolesPage() {
                                         <CardTitle className="font-bold flex items-center gap-2"> <Badge className={`h-4 min-w-4 rounded-full px-1 font-mono tabular-nums ${role.deletedAt === null ? "bg-green-700" : "bg-red-700" }`} /> { role.name }</CardTitle>
                                         <CardDescription>{ role.description }</CardDescription>
                                         <CardAction>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger className="cursor-pointer"><EllipsisVertical /></DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem asChild>
-                                                        <Dialog>
-                                                            <DialogTrigger className="text-primary cursor-pointer justify-start flex gap-2 items-center p-1 text-sm">
-                                                                <SquarePen size={16} className="text-primary" /> Editar
-                                                            </DialogTrigger>
-                                                            <DialogContent>
-                                                                <DialogHeader>
-                                                                <DialogTitle>Editar rol</DialogTitle>
-                                                                <DialogDescription>
-                                                                    {/* Formulario de edición */}
-                                                                </DialogDescription>
-                                                                </DialogHeader>
-                                                            </DialogContent>
-                                                        </Dialog>
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem asChild>
-                                                        <DeleteResourceDialog resource="rol" resourceId={role.id} />
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
+                                            <RoleActionsMenu role={role} />
                                         </CardAction>
                                     </CardHeader>
                                     <CardContent className="flex-1">

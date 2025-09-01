@@ -4,4 +4,5 @@ export const accionesLog = {
   DELETE: "DELETE",
   LOGIN: "LOGIN",
   LOGOUT: "LOGOUT",
+  LOGIN_FAIL: "LOGIN_FAIL",
 } as const;

@@ -9,7 +9,6 @@ type Props = {
 
 export default function SelectPermissions({ options, value, onChange }: Props) {
   const id = useId()
-
   // convertir los string[] en Option[] para el selector
   const selectedOptions = options.filter(opt => value.includes(opt.value))
 
@@ -17,8 +16,8 @@ export default function SelectPermissions({ options, value, onChange }: Props) {
     <div className="*:not-first:mt-2">
       <MultipleSelector
         commandProps={{ label: "Selecciona los permisos" }}
-        value={selectedOptions}
-        onChange={(opts) => onChange(opts.map(o => o.value))} // devolver solo string[]
+        value={options.filter(opt => value.includes(opt.value))} // Directly filter here
+        onChange={(opts) => onChange(opts.map(o => o.value))} // Keep this as it's correct
         defaultOptions={options}
         placeholder="Seleciona los permisos"
         hideClearAllButton
